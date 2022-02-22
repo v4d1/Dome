@@ -163,15 +163,17 @@ Feel free to implement this features
 
 ## Examples
 
+
+Perform active and passive scan, show the ip adress of each subdomain and make a port scan using top-web-ports. Data will also be written in /results folder:
+```sh
+python dome.py -m active -d domain -i --top-web-ports -o
+```
+
 Perform passive scan in silent mode and write output to files.
 ```sh
 python dome.py -m passive -d domain --silent --output
 ```
 
-Perform active and passive scan, show the ip adress of each subdomain and make a port scan using top-web-ports:
-```sh
-python dome.py -m active -d domain -i --top-web-ports
-```
 
 Perform active scan without passive and port scan
 ```sh
