@@ -2,20 +2,21 @@
 
 Dome is a fast and reliable python script that makes active and/or passive scan to obtain subdomains and search for open ports. This tool is recommended for bug bounty hunters and pentester in their reconnaissance phase.
 
+
 >the more surface area exposed the faster a rock with break down
 
 
 
-If you want to use more OSINT engines, fill the config.api file with the needed API tokens
+If you want to use more OSINT engines, fill the **config.api** file with the needed API tokens
 
-#### Passive Mode:
+### Passive Mode:
 Use OSINT techniques to obtain subdomains from the target. This mode will not make any connection to the target so it is **undetectable**.
 The basic use of this mode is:
 ```sh
 python dome.py -m passive -d domain
 ```
 
-#### Active Mode:
+### Active Mode:
 Perform bruteforce attacks to obtain alive subdomains. 
 There are 2 types of bruteforce:
 - **Pure Bruteforce**: Check subdomains from a.domain.com to zzz.domain.com (26 + 26^2 + 26^3 = 18278 subdomains) this bruteforce can be disabled with `-nb, --no-bruteforce`
@@ -54,10 +55,11 @@ python dome.py --help
 - Active and Passive scan (read above)
 - Faster than other subdomain enumeration tools
 - Up to 16 different OSINT sources
+- Subdomains obtained via OSINT are tested to know if they are alive (only in passive mode)
 - Support for webs that requires API token
 - Detects when api key is no longer working (Other tools just throw an error and stops working)
 - Wildcard detection and bypass
-- Custom Port scaning
+- Custom Port scaning and built-in params for Top100,Top1000 and Top Web ports
 - Colored and uncolored output for easy read
 - Highly customizable through arguments
 - Scan more than one domain simultaneously
