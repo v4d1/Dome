@@ -9,19 +9,19 @@ Dome is a fast and reliable python script that makes active and/or passive scan 
 If you want to use more OSINT engines, fill the config.api file with the needed API tokens
 
 #### Passive Mode:
-This mode will use OSINT techniques to obtain subdomains from the target. This mode will not make any connection to the target so it is **undetectable**.
+Use OSINT techniques to obtain subdomains from the target. This mode will not make any connection to the target so it is **undetectable**.
 The basic use of this mode is:
 ```sh
 python dome.py -m passive -d domain
 ```
 
 #### Active Mode:
-This mode will make bruteforce to obtain valid subdomains. 
+Perform bruteforce attacks to obtain alive subdomains. 
 There are 2 types of bruteforce:
-- **Pure Bruteforce**: This will check subdomains from a.domain.com to zzz.domain.com (26 + 26^2 + 26^3 = 18278 subdomains) this bruteforce can be disabled with `-nb, --no-bruteforce`
-- **Worlist based**: This will use a custom wordlist provided by the user using the flag `-w, --wordlist`
+- **Pure Bruteforce**: Check subdomains from a.domain.com to zzz.domain.com (26 + 26^2 + 26^3 = 18278 subdomains) this bruteforce can be disabled with `-nb, --no-bruteforce`
+- **Worlist based**: Use a custom wordlist provided by the user using the flag `-w, --wordlist`
 
-This mode will also make passive mode attack but in this case, the connection will be tested to ensure the subdomain is still alive. To disable passive scan in active scan mode, use `--no-passive` flag
+This mode will also make passive mode attack but in this case, the connection is tested to ensure the subdomain is still alive. To disable passive scan in active scan mode, use `--no-passive` flag
 
 The basic use of this mode is:
 ```sh
@@ -53,7 +53,7 @@ python dome.py --help
 - Easy to use. Just install the requirements.txt and run
 - Active and Passive scan (read above)
 - Faster than other subdomain enumeration tools
-- Up to X different OSINT sources
+- Up to 16 different OSINT sources
 - Support for webs that requires API token
 - Detects when api key is no longer working (Other tools just throw an error and stops working)
 - Wildcard detection and bypass
@@ -61,7 +61,7 @@ python dome.py --help
 - Colored and uncolored output for easy read
 - Highly customizable through arguments
 - Scan more than one domain simultaneously
-- Possibility to use threads for faster scans
+- Possibility to use threads for faster wordlists based scans
 - Export output in different formats such as txt, json, html
 
 ## Buy me a Coffee
