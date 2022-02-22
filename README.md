@@ -64,6 +64,11 @@ python dome.py --help
 - Possibility to use threads for faster scans
 - Export output in different formats such as txt, json, html
 
+## Buy me a Coffee
+
+[!["Buy Me A Coffee"](https://www.buymeacoffee.com/assets/img/custom_images/orange_img.png)](https://www.buymeacoffee.com/v4d1)
+
+
 ## Screenshots
 
 ![tool_in_action](https://i.imgur.com/3qN5WiJ.png)
