@@ -5,15 +5,12 @@ import sys
 import string
 import threading
 import argparse
-import numpy as np
 import requests
 import re
 import os
 import uuid
 import random
 import json
-import shodan
-import time
 from concurrent.futures import ThreadPoolExecutor
 from concurrent.futures import wait
 from datetime import datetime
@@ -166,9 +163,9 @@ def checkDomain(domain):
 
 		#If no exception is given, the ip exists so we create the dictionary as follows {"1.1.1.1": ["subdomain1", "subdomain2"]}
 		if show_ip == True and mode.lower() == "active":
-			if printOutput: print(G + "[+] Found new: " + domain + " at " + W + ip_result + "                                                   ")
+			if printOutput: print(G + "[+] Found new: " + domain + " at " + W + ip_result)
 		else:
-			if printOutput: print(G + "[+] Found new: " + domain + "                                                   ")
+			if printOutput: print(G + "[+] Found new: " + domain)
 		
 		
 		if rootdomain not in list(subdomains_found.keys()):
@@ -205,9 +202,9 @@ def bruteWordlist(domains, entries):
 	for domain in domains: 
 		for entry in entries:
 			subdomain = entry.strip()+"."+domain
-			isFound = checkDomain(subdomain)
-			if printOutput: print('                                                                     ', end='\r')
-			if printOutput: print("\r" + subdomain, end='\r')
+			checkDomain(subdomain)
+			if printOutput: print('\x1b[1K\r                                                ', end='\r') #clear screen 
+			if printOutput: print('\x1b[1K\r' + subdomain , end='\r')
 	return 
 
 
@@ -218,14 +215,16 @@ def simpleBrute(domains, charset, subcharset, option):
 			if (option == 1):
 				for letter in charset:
 					checkDomain(letter+"."+domain)
-					if printOutput: print(G + letter+"."+domain+"                  ", end='\r')
+					if printOutput: print('\x1b[1K\r                                                ', end='\r')
+					if printOutput: print("\x1b[1K\r" + G + letter+"."+domain+"                ", end='\r')
 
 			#bruteforce 2 letters
 			if (option == 2):
 				for letter1 in charset:
 					for letter2 in charset:
 						checkDomain(letter1+letter2+"."+domain)
-						if printOutput: print(G + letter1+letter2+"."+domain+"                        ", end='\r')
+						if printOutput: print('\x1b[1K\r                                                ', end='\r')
+						if printOutput: print("\x1b[1K\r" + G + letter1+letter2+"."+domain+"                ", end='\r')
 
 			#bruteforce 3 letters
 			if (option == 3):
@@ -233,7 +232,8 @@ def simpleBrute(domains, charset, subcharset, option):
 					for letter2 in charset:
 						for letter3 in charset:
 							checkDomain(letter1+letter2+letter3+"."+domain)
-							if printOutput: print(G + letter1+letter2+letter3+"."+domain+"                        ", end='\r')
+							if printOutput: print('\x1b[1K\r                                                ', end='\r')
+							if printOutput: print("\x1b[1K\r" + G + letter1+letter2+letter3+"."+domain+"                ", end='\r')
 
 
 
@@ -263,7 +263,7 @@ def runPureBrute(domains):
 	
 	charset = ['a','b','c','d','e','f','g','h','i','j','k','l','m','n','o','p','q','r','s','t','u','v','w','x','y','z']
 
-	if printOutputV: print(B + "\n\n[!] Pure bruteforcing: " + Fore.CYAN + ', '.join(domains) + B + ". This attack does not depend on threads and may take a while.")
+	if printOutputV: print(B + "\n\n[!] Pure bruteforcing: " + W + ', '.join(domains) + B + ". This attack does not depend on threads and may take a while.")
 
 	#DONT KNOW HOW TO PARALELIZE	
 	executor = ThreadPoolExecutor(max_workers=15)
@@ -291,7 +291,11 @@ def runWordlistBrute(domains,entries, threads):
 	if printOutputV: print(B + "[!] Bruteforcing with wordlist: " + W + wordlist_name + G)
 
 	#We split the wordlist in N parts (N = number of threads)
-	splited_list = np.array_split(entries, threads)
+
+	x = int(len(entries)/threads) + 1
+	splited_list = [entries[i:i+x] for i in range(0, len(entries), x)]
+	#splited_list = np.array_split(entries, threads)
+
 
 	#Call to function bruteWordlist
 	executor = ThreadPoolExecutor(max_workers=threads)
@@ -310,17 +314,29 @@ def runOpenPorts(threads,ports):
 			ips_to_scan.append(list(subdomains_found[key][i].keys())[0]) #This iterates all dicc extracting all ip addresses
 
 
+	if len(ips_to_scan) == 0:
+		return
+
 	if printOutput: print(B + "[!] Checking open ports: ")
 
 	executor = ThreadPoolExecutor(max_workers=threads)
 
-	if (len(ips_to_scan) < threads): 	
-		splited_ips_found = np.array_split(ips_to_scan, len(ips_to_scan))
-		futures = [executor.submit(openPorts, splited_ips_found[i], ports, timeout) for i in range(len(ips_to_scan))]
-	else:
-		splited_ips_found = np.array_split(ips_to_scan, threads)
-		futures = [executor.submit(openPorts, splited_ips_found[i], ports, timeout) for i in range(threads)]
+	if (len(ips_to_scan) < threads): 
 	
+		splited_list = [ips_to_scan[i:i+1] for i in range(0, len(ips_to_scan), 1)]
+
+		#splited_ips_found = np.array_split(ips_to_scan, len(ips_to_scan))
+		
+		futures = [executor.submit(openPorts, splited_list[i], ports, timeout) for i in range(len(ips_to_scan))]
+	else:
+		
+		x = int(len(ips_to_scan)/threads) + 1
+		
+		splited_list = [ips_to_scan[i:i+x] for i in range(0, len(ips_to_scan), x)]
+		
+		futures = [executor.submit(openPorts, splited_list[i], ports, timeout) for i in range(threads)]
+
+		#splited_ips_found = np.array_split(ips_to_scan, threads)	
 	wait(futures)
 
 
@@ -585,7 +601,11 @@ def runPassive(domains):
 def runActive(domains,entries, threads, no_bruteforce):
 	if printOutput: print(B + "\n\n[+] Running active mode: ")
 	if not no_bruteforce: runPureBrute(domains) 
-	if entries: runWordlistBrute(domains,entries, threads)
+	if len(entries)>0: 
+		runWordlistBrute(domains,entries, threads)
+	else:
+		if printOutput: print(R + "\n\n[-] No wordlist provided. ")
+
 
 
 def checkWildcard(domains):
