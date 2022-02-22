@@ -382,11 +382,13 @@ def runWebArchive(domain):
 	if printOutputV: print(G + "[+] Downloading data")
 	r = requests.get("https://web.archive.org/cdx/search/cdx?url=*." + domain + "&output=txt&fl=original&collapse=urlkey&page=", timeout=10)
 	if printOutputV: print(G + "[+] Downloaded data for " + W + domain + " (" + str(len(r.text)/1000000) + "MB)")
-	if len(r.text) > max_response:
+	len_res = len(r.text)
+	if  len_res > max_response:
 		if printOutputV: print(W + "[-] HTTP response to high to grep. Length is " + R + str(len(r.text)) + W + " and max_response is " + R + str(max_response) + W + ". Add --max-response-size [NUMBER] to increase maximun response size.")
 	else:
 		pattern = '(?!2?F)[a-zA-Z0-9\-\.]*\.' + str(domain.split('.')[0]) + '\.' + str(domain.split('.')[1])
-		if printOutputV: print(G + "[+] Greping file. This can take a while\n")
+		if len_res > 5000000:
+			if printOutputV: print(G + "[+] Greping file. This can take a while\n")
 		for domain in re.findall(pattern, r.text):
 			checkDomain(domain) #we send to check domain to verify it still exists
 
