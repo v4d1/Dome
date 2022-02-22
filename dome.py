@@ -262,7 +262,7 @@ def runPureBrute(domains):
 	
 	charset = ['a','b','c','d','e','f','g','h','i','j','k','l','m','n','o','p','q','r','s','t','u','v','w','x','y','z']
 
-	if printOutputV: print(B + "\n\n[!] Pure bruteforcing: " + Fore.CYAN + ', '.join(domains) + B + ". This attack does not depend on threads and may take a while.")
+	if printOutputV: print(B + "\n\n[!] Pure bruteforcing: " + W + ', '.join(domains) + B + ". This attack does not depend on threads and may take a while.")
 
 	#DONT KNOW HOW TO PARALELIZE	
 	executor = ThreadPoolExecutor(max_workers=15)
