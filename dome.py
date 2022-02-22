@@ -12,7 +12,6 @@ import os
 import uuid
 import random
 import json
-import shodan
 import time
 from concurrent.futures import ThreadPoolExecutor
 from concurrent.futures import wait
