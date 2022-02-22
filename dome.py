@@ -11,10 +11,7 @@ import os
 import uuid
 import random
 import json
-<<<<<<< HEAD
-=======
-import time
->>>>>>> 0b8555856baa979c0ee080d9d832c89a83d6781f
+
 from concurrent.futures import ThreadPoolExecutor
 from concurrent.futures import wait
 from datetime import datetime
@@ -146,6 +143,8 @@ def checkDomain(domain):
 	if domain not in subdomains_found_list and domain not in noExists:
 
 		rootdomain=domain.split('.')[-2]+"."+domain.split('.')[-1] #DONT WORK WITH DOMAINS LIKE domain.gov.uk
+		if domain == rootdomain: #we dont test de domain itself
+			return
 
 		#If passive mode is selected, we dont have ip info so we use "no_ip_because_of_passive_mode"
 		ip_result = "no_ip_because_of_passive_mode"
@@ -532,7 +531,17 @@ def runBinaryEdge(domain):
 		page=page+1
 
 
+def runAlienVault(domain):
+	if printOutputV: print(B + "\n[!] Searching in" + W + " AlienVault:")
 
+	r = requests.get("https://otx.alienvault.com/api/v1/indicators/domain/" + domain + "/passive_dns", )
+	d = json.loads(r.text)
+	for i in range(len(d["passive_dns"])):
+		checkDomain(d["passive_dns"][i]["hostname"])
+
+
+
+			
 
 
 #This function is used as template. Makes request method and grep
@@ -572,12 +581,12 @@ def runPassive(domains):
 		for domain in domains:
 			defaultRun("ThreatCrowd", "https://www.threatcrowd.org/searchApi/v2/domain/report/?domain=" + domain, domain)
 			defaultRun("HackerTarget", "https://api.hackertarget.com/hostsearch/?q=" + domain, domain)			
-			defaultRun("AlienVault", "https://otx.alienvault.com/api/v1/indicators/domain/" + domain + "/passive_dns", domain)
 			defaultRun("RapidDNS", "https://rapiddns.io/subdomain/" + domain + "?full=1&down=1", domain)
 			defaultRun("ThreatMiner", "https://api.threatminer.org/v2/domain.php?q=" + domain + "&rt=5", domain)
 			defaultRun("UrlScan.io", "https://urlscan.io/api/v1/search/?q=" + domain, domain)
 			defaultRun("BufferOverflow", "https://dns.bufferover.run/dns?q=" + domain, domain)
 
+			runAlienVault(domain)
 			runWebArchive(domain)		
 			runCertSpotter(domain) #CertSpotter can be used with api or without, so we make the condition inside the function
 			runCrt(domain)
