@@ -14,7 +14,6 @@ import random
 import json
 import shodan
 import time
-from colorama import Fore, Style
 from concurrent.futures import ThreadPoolExecutor
 from concurrent.futures import wait
 from datetime import datetime
