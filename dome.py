@@ -11,6 +11,9 @@ import os
 import uuid
 import random
 import json
+import time
+from dns import resolver
+
 
 from concurrent.futures import ThreadPoolExecutor
 from concurrent.futures import wait
@@ -18,7 +21,6 @@ from datetime import datetime
 
 
 
-IPs_found =[]
 subdomains_found = {}
 subdomains_found_list = []
 wildcardsDicc={} 
@@ -27,6 +29,25 @@ mode = "passive"
 apis = {}
 portsPassive = {}
 noExists = []
+count = 0
+countToChange = 0
+isWebArchive = False
+res = resolver.Resolver()
+
+resolvers = ['1.1.1.1'] #Cloudfare resolver, actually the fastest one 
+
+#If we use a list of resolvers, Dome will change to next resolver like a queue when 50 resolves takes longer than 5 seconds to response
+
+#resolvers = ['1.1.1.1', '9.9.9.9', '8.8.8.8', '1.0.0.1', '208.67.222.222', '8.8.4.4', '149.112.112.11' ]
+
+
+
+
+def changeDNS():
+	global resolvers
+	global res
+	resolvers.append(resolvers.pop(0)) # first resolver is now the last
+	res.nameservers=[resolvers[0]]
 
 
 def banner(version):
@@ -67,7 +88,7 @@ def parser_error(errmsg):
 
 def parse_args():
 	# parse the arguments
-	parser = argparse.ArgumentParser(epilog='\tExample: \r\npython3 ' + sys.argv[0] + " -m active -d facebook.com -w subdomains-5000.txt -p 80,443,8080 -o")
+	parser = argparse.ArgumentParser(epilog='\tExample: \r\npython ' + sys.argv[0] + " -m active -d hackerone.com -w subdomains-5000.txt -p 80,443,8080 -o")
 	parser._optionals.title = "OPTIONS"
 	parser.error = parser_error
 	parser.add_argument('-m', '--mode', help="Scan mode. Active or passive", required=True)
@@ -139,20 +160,40 @@ def checkDomain(domain):
 	if domain.startswith((".", "*", "_")):
 		return
 
-	#If the subdomain was tested before, it wont be scanned again. This is critical to reduce overload
-	if domain not in subdomains_found_list and domain not in noExists:
+	if domain in noExists: #This is used to avoid overload in web archive (Web Archive can extract same domain thousands of times)
+		return
 
+	#If the subdomain was tested before, it wont be scanned again. This is critical to reduce overload
+	#if domain not in subdomains_found_list and domain not in noExists:
+	if domain not in subdomains_found_list:
 		rootdomain=domain.split('.')[-2]+"."+domain.split('.')[-1] #DONT WORK WITH DOMAINS LIKE domain.gov.uk
+
 		if domain == rootdomain: #we dont test de domain itself
 			return
 
 		#If passive mode is selected, we dont have ip info so we use "no_ip_because_of_passive_mode"
-		ip_result = "no_ip_because_of_passive_mode"
+		ips = ["no_ip_because_of_passive_mode"]
 
 		#In active mode, the subdomain is tested to determine if it is alive or not
 		if mode.lower() == "active":
 			try:
-				ip_result = socket.gethostbyname(domain)
+				global count
+				count = count + 1
+
+
+				start = time.time()
+
+				#ip_result = socket.gethostbyname(domain)
+				res.timeout = 1
+				res.timelife = 1
+				answers = res.resolve(domain)
+
+				ip_result = answers[0].address
+				ips = []
+				for rdata in answers:
+					ips.append(rdata.address)
+
+
 				#We check if ip correspond to a wildcard DNS
 				if wildcardsDicc:
 					for d in wildcardsDicc.keys():
@@ -160,36 +201,56 @@ def checkDomain(domain):
 							if ip_result in wildcardsDicc[rootdomain]:
 								return
 			except: 
-				noExists.append(domain) # We need to storage when a domain doesn't exists in order to not overload the server (web archive module can make so much requests with same domain)
+				if len(resolvers)>1: #If we are using a list of resolvers, the queue will change every 50 requests of >5 secs
+					global countToChange
+					end = time.time()
+					if end-start > 5 :
+						countToChange = countToChange + 1
+					if countToChange > 50 and res.nameservers[0] == resolvers[0]: #If 50 subdomains take longer than 5 secs to resolve, we call changeDNS to change the ip of DNS resolver
+						changeDNS()
+						countToChange = 0
+
+				if isWebArchive:
+					noExists.append(domain) # We need to storage when a domain doesn't exists in order to not overload the server (web archive module can make so much requests with same domain)
 				return
-			
+
 
 		#If no exception is given, the ip exists so we create the dictionary as follows {"1.1.1.1": ["subdomain1", "subdomain2"]}
 		if show_ip == True and mode.lower() == "active":
-			if printOutput: print(G + "[+] Found new: " + domain + " at " + W + ip_result)
+			if printOutput: print(G + "[+] Found new: " + domain + " at " + W + ', '.join(ips) +"\n", end='\r')
 		else:
 			if printOutput: print(G + "[+] Found new: " + domain)
 		
-		
-		if rootdomain not in list(subdomains_found.keys()):
 
-			subdomains_found[rootdomain] = [{ip_result:[domain]}] #If domain dont exists, it creates {"domain": [{"ip":["subdomain1",...]}, ...]}
+		for singleip in ips:
 
-		else:
+			found=False
+			if rootdomain not in list(subdomains_found.keys()):
 
-			count = 0
-			for i in range(len(subdomains_found[rootdomain])): #if ip is in diccionary
-				count=count+1
-				if ip_result in list(subdomains_found[rootdomain][i].keys()): #First time = assing, next times = append
-					if domain not in subdomains_found[rootdomain][i][ip_result]:
-						subdomains_found[rootdomain][i][ip_result].append(domain)
-						subdomains_found_list.append(domain)
-					return
+				subdomains_found[rootdomain] = [{singleip:[domain]}] #If domain dont exists, it creates {"domain": [{"ip":["subdomain1",...]}, ...]}
 
-			if count == len(subdomains_found[rootdomain]): #if ip doesnt exists...
-				subdomains_found[rootdomain].append({ip_result:[domain]})
+			else:
+
+				count2 = 0
+				for i in range(len(subdomains_found[rootdomain])): #if ip is in diccionary
+					count2=count2+1
+					#print("IS " + singleip + " in " + str(list(subdomains_found[rootdomain][i].keys())))
+					if singleip in list(subdomains_found[rootdomain][i].keys()): #First time = assing, next times = append
+					#	print("YES")
+					#	print("IS " + domain + " NOT in " + str(subdomains_found[rootdomain][i][singleip]))
+						if domain not in subdomains_found[rootdomain][i][singleip]:
+							subdomains_found[rootdomain][i][singleip].append(domain)
+							found=True
+							break
+							#subdomains_found_list.append(domain)
+						
+
+				if count2 == len(subdomains_found[rootdomain]) and found==False: #if ip doesnt exists...
+					subdomains_found[rootdomain].append({singleip:[domain]})
+
 
 		subdomains_found_list.append(domain)
+		#print(subdomains_found)
 
 
 		return True
@@ -199,44 +260,20 @@ def checkDomain(domain):
 
 
 
-def bruteWordlist(domains, entries):
+def brute(domains, entries, option):
 
 	#domains can be a list if user input more than one domain or recursively is True
 	for domain in domains: 
 		for entry in entries:
 			subdomain = entry.strip()+"."+domain
 			checkDomain(subdomain)
-			if printOutput: print('\x1b[1K\r                                                ', end='\r') #clear screen 
-			if printOutput: print('\x1b[1K\r' + subdomain , end='\r')
+			if option == 1:
+				if False: 
+					print('\x1b[1K\r                         ', end='\r') #clear screen 
+					print('\x1b[1K\r' + subdomain + "        ", end='\r')
+			else:
+				if printOutput: print('\x1b[1K\r' + subdomain + "        ", end='\r')
 	return 
-
-
-
-def simpleBrute(domains, charset, subcharset, option):
-	for domain in domains:
-			#bruteforce 1 letter
-			if (option == 1):
-				for letter in charset:
-					checkDomain(letter+"."+domain)
-					if printOutput: print('\x1b[1K\r                                                ', end='\r')
-					if printOutput: print("\x1b[1K\r" + G + letter+"."+domain+"                ", end='\r')
-
-			#bruteforce 2 letters
-			if (option == 2):
-				for letter1 in charset:
-					for letter2 in charset:
-						checkDomain(letter1+letter2+"."+domain)
-						if printOutput: print('\x1b[1K\r                                                ', end='\r')
-						if printOutput: print("\x1b[1K\r" + G + letter1+letter2+"."+domain+"                ", end='\r')
-
-			#bruteforce 3 letters
-			if (option == 3):
-				for letter1 in subcharset:
-					for letter2 in charset:
-						for letter3 in charset:
-							checkDomain(letter1+letter2+letter3+"."+domain)
-							if printOutput: print('\x1b[1K\r                                                ', end='\r')
-							if printOutput: print("\x1b[1K\r" + G + letter1+letter2+letter3+"."+domain+"                ", end='\r')
 
 
 
@@ -262,30 +299,32 @@ def openPorts(ips, ports, timeout):
 					subdomains_found[domain][i][ip].append(port_open)
 
 
-def runPureBrute(domains):
-	
+
+
+
+def runPureBrute(domains, threads):
+
 	charset = ['a','b','c','d','e','f','g','h','i','j','k','l','m','n','o','p','q','r','s','t','u','v','w','x','y','z']
 
-	if printOutputV: print(B + "\n\n[!] Pure bruteforcing: " + W + ', '.join(domains) + B + ". This attack does not depend on threads and may take a while.")
+	entries = []
 
-	#DONT KNOW HOW TO PARALELIZE	
-	executor = ThreadPoolExecutor(max_workers=15)
-	futures = []
-	futures.append(executor.submit(simpleBrute, domains, charset, charset,1))	#a 	 -> z
-	futures.append(executor.submit(simpleBrute, domains, charset, charset,2))	#aa  -> zz
-	futures.append(executor.submit(simpleBrute, domains, charset, ['a','b'],3)) #aaa -> azz AND baa->bzz
-	futures.append(executor.submit(simpleBrute, domains, charset, ['c','d'],3)) #caa -> czz AND daa->dzz
-	futures.append(executor.submit(simpleBrute, domains, charset, ['e','f'],3)) #eaa -> ezz AND faa->fzz
-	futures.append(executor.submit(simpleBrute, domains, charset, ['g','h'],3)) #gaa -> gzz AND haa->hzz
-	futures.append(executor.submit(simpleBrute, domains, charset, ['i','j'],3)) #iaa -> izz AND jaa->jzz
-	futures.append(executor.submit(simpleBrute, domains, charset, ['k','l'],3)) #kaa -> kzz AND laa->lzz
-	futures.append(executor.submit(simpleBrute, domains, charset, ['m','n'],3)) #maa -> mzz AND naa->nzz
-	futures.append(executor.submit(simpleBrute, domains, charset, ['o','p'],3)) #oaa -> ozz AND paa->pzz
-	futures.append(executor.submit(simpleBrute, domains, charset, ['q','r'],3)) #qaa -> qzz AND raa->rzz
-	futures.append(executor.submit(simpleBrute, domains, charset, ['s','t'],3)) #saa -> szz AND taa->tzz
-	futures.append(executor.submit(simpleBrute, domains, charset, ['u','v'],3)) #uaa -> uzz AND vaa->vzz
-	futures.append(executor.submit(simpleBrute, domains, charset, ['w','x'],3)) #waa -> wzz AND xaa->xzz
-	futures.append(executor.submit(simpleBrute, domains, charset, ['y','z'],3)) #yaa -> yzz AND zaa->zzz
+	for letter1 in charset:
+		entries.append(letter1)
+		for letter2 in charset:
+			entries.append(letter1+letter2)
+			for letter3 in charset:
+				entries.append(letter1+letter2+letter3)
+
+
+	if printOutputV: print(B + "[!] Bruteforcing from " + W + "a" + B + " to" + W + " zzz: ")
+
+	#We split the wordlist in N parts (N = number of threads)
+	x = int(len(entries)/threads) + 1
+	splited_list = [entries[i:i+x] for i in range(0, len(entries), x)]
+	#splited_list = np.array_split(entries, threads)
+
+	executor = ThreadPoolExecutor(max_workers=threads)
+	futures = [executor.submit(brute, domains, splited_list[i],1) for i in range(len(splited_list))]
 	wait(futures)
 
 
@@ -299,10 +338,8 @@ def runWordlistBrute(domains,entries, threads):
 	splited_list = [entries[i:i+x] for i in range(0, len(entries), x)]
 	#splited_list = np.array_split(entries, threads)
 
-
-	#Call to function bruteWordlist
 	executor = ThreadPoolExecutor(max_workers=threads)
-	futures = [executor.submit(bruteWordlist, domains, splited_list[i]) for i in range(threads)]
+	futures = [executor.submit(brute, domains, splited_list[i],2) for i in range(len(splited_list))]
 	wait(futures)
 
 
@@ -327,8 +364,6 @@ def runOpenPorts(threads,ports):
 	if (len(ips_to_scan) < threads): 
 	
 		splited_list = [ips_to_scan[i:i+1] for i in range(0, len(ips_to_scan), 1)]
-
-		#splited_ips_found = np.array_split(ips_to_scan, len(ips_to_scan))
 		
 		futures = [executor.submit(openPorts, splited_list[i], ports, timeout) for i in range(len(ips_to_scan))]
 	else:
@@ -339,7 +374,6 @@ def runOpenPorts(threads,ports):
 		
 		futures = [executor.submit(openPorts, splited_list[i], ports, timeout) for i in range(threads)]
 
-		#splited_ips_found = np.array_split(ips_to_scan, threads)	
 	wait(futures)
 
 
@@ -368,7 +402,7 @@ def runCrt(domain):
 	r = requests.get("https://crt.sh/?q=" + domain + "&output=json")
 	if printOutputV: print(G + "[+] Downloaded data for " + W + domain + " (" + str(len(r.text)/1000000) + "MB)")
 	if len(r.text) > max_response:
-		if printOutputV: print(W + "[-] HTTP response to high to grep. Length is " + R + str(len(r.text)) + W + " and max_response is " + R + str(max_response) + W + ". Add --max-response-size [NUMBER] to increase maximun response size.")
+		if printOutputV: print(W + "[-] HTTP response to high to grep. Length is " + R + str(len(r.text)) + W + " and max_response is " + R + str(max_response) + W + ". Add --max-response-size [NUMBER] to increase maximum response size.")
 	else:
 		pattern = '"[a-zA-Z0-9\-\.]*\.' + str(domain.split('.')[0]) + '\.' + str(domain.split('.')[1])
 		for domain in re.findall(pattern, r.text):
@@ -384,7 +418,7 @@ def runWebArchive(domain):
 	if printOutputV: print(G + "[+] Downloaded data for " + W + domain + " (" + str(len(r.text)/1000000) + "MB)")
 	len_res = len(r.text)
 	if  len_res > max_response:
-		if printOutputV: print(W + "[-] HTTP response to high to grep. Length is " + R + str(len(r.text)) + W + " and max_response is " + R + str(max_response) + W + ". Add --max-response-size [NUMBER] to increase maximun response size.")
+		if printOutputV: print(W + "[-] HTTP response to high to grep. Length is " + R + str(len(r.text)) + W + " and max_response is " + R + str(max_response) + W + ". Add --max-response-size [NUMBER] to increase maximum response size.")
 	else:
 		pattern = '(?!2?F)[a-zA-Z0-9\-\.]*\.' + str(domain.split('.')[0]) + '\.' + str(domain.split('.')[1])
 		if len_res > 5000000:
@@ -455,7 +489,7 @@ def runSpyse(domain):
 	r = requests.post("https://api.spyse.com/v4/data/domain/search", headers=header, data="{\"search_params\":[{\"name\":{\"operator\":\"ends\",\"value\":\"." + domain + "\"}}],\"limit\":100}")
 	#d = json.loads(r.text)
 	if len(r.text) > max_response:
-		if printOutputV: print(W + "[-] HTTP response to high to grep. Length is " + R + str(len(r.text)) + W + " and max_response is " + R + str(max_response) + W + ". Add --max-response-size [NUMBER] to increase maximun response size.")
+		if printOutputV: print(W + "[-] HTTP response to high to grep. Length is " + R + str(len(r.text)) + W + " and max_response is " + R + str(max_response) + W + ". Add --max-response-size [NUMBER] to increase maximum response size.")
 	else:
 		pattern = '(?!2?F)[a-zA-Z0-9\-\.]*\.' + str(domain.split('.')[0]) + '\.' + str(domain.split('.')[1])
 		for domain in re.findall(pattern, r.text):
@@ -481,7 +515,7 @@ def runCertSpotter(domain):
 		if printOutputV: print(R + "\n[-] Rate exceeded. Wait some minutes")
 		return
 	if len(r.text) > max_response:
-		if printOutputV: print(W + "[-] HTTP response to high to grep. Length is " + R + str(len(r.text)) + W + " and max_response is " + R + str(max_response) + W + ". Add --max-response-size [NUMBER] to increase maximun response size.")
+		if printOutputV: print(W + "[-] HTTP response to high to grep. Length is " + R + str(len(r.text)) + W + " and max_response is " + R + str(max_response) + W + ". Add --max-response-size [NUMBER] to increase maximum response size.")
 	else:
 		pattern = '(?!2?F)[a-zA-Z0-9\-\.]*\.' + str(domain.split('.')[0]) + '\.' + str(domain.split('.')[1])
 		for domain in re.findall(pattern, r.text):
@@ -492,7 +526,7 @@ def runCertSpotter(domain):
 def runShodan(domain):
 
 	if printOutputV: print(B + "\n[!] Searching in" + W + " Shodan:")
-
+	print('https://api.shodan.io/dns/domain/' + domain)
 	r =requests.get('https://api.shodan.io/dns/domain/' + domain + '?key=' + apis["SHODAN"])
 	d = json.loads(r.text)
 	for i in range(len(d["data"])):
@@ -524,7 +558,7 @@ def runBinaryEdge(domain):
 		d = json.loads(r.text)
 
 		if len(r.text) > max_response:
-			if printOutputV: print(W + "[-] HTTP response to high to grep. Length is " + R + str(len(r.text)) + W + " and max_response is " + R + str(max_response) + W + ". Add --max-response-size [NUMBER] to increase maximun response size.")
+			if printOutputV: print(W + "[-] HTTP response to high to grep. Length is " + R + str(len(r.text)) + W + " and max_response is " + R + str(max_response) + W + ". Add --max-response-size [NUMBER] to increase maximum response size.")
 		else:
 			for subdomain in d["events"]:
 				checkDomain(subdomain) #we send to check domain to verify it still exists
@@ -539,7 +573,8 @@ def runAlienVault(domain):
 	r = requests.get("https://otx.alienvault.com/api/v1/indicators/domain/" + domain + "/passive_dns", )
 	d = json.loads(r.text)
 	for i in range(len(d["passive_dns"])):
-		checkDomain(d["passive_dns"][i]["hostname"])
+		if domain in d["passive_dns"][i]["hostname"]:
+			checkDomain(d["passive_dns"][i]["hostname"])
 
 
 
@@ -557,7 +592,7 @@ def defaultRun(name, request, domain):
 			if printOutputV: print(R + "\n[-] API Limit exceeded. The Public API is limited to 500 requests per day and a rate of 4 requests per minute." + B)
 			return
 	if len(r.text) > max_response:
-		if printOutputV: print(W + "[-] HTTP response to high to grep. Length is " + R + str(len(r.text)) + W + " and max_response is " + R + str(max_response) + W + ". Add --max-response-size [NUMBER] to increase maximun response size.")
+		if printOutputV: print(W + "[-] HTTP response to high to grep. Length is " + R + str(len(r.text)) + W + " and max_response is " + R + str(max_response) + W + ". Add --max-response-size [NUMBER] to increase maximum response size.")
 	else:
 		pattern = '(?!2?F)[a-zA-Z0-9\-\.]*\.' + str(domain.split('.')[0]) + '\.' + str(domain.split('.')[1])
 		for domain in re.findall(pattern, r.text):
@@ -589,7 +624,10 @@ def runPassive(domains):
 			defaultRun("BufferOverflow", "https://dns.bufferover.run/dns?q=" + domain, domain)
 
 			runAlienVault(domain)
+			global isWebArchive
+			isWebArchive == True
 			runWebArchive(domain)		
+			isWebArchive == False
 			runCertSpotter(domain) #CertSpotter can be used with api or without, so we make the condition inside the function
 			runCrt(domain)
 
@@ -608,14 +646,13 @@ def runPassive(domains):
 						runPassiveTotal(domain)
 					elif api =="BINARYEDGE":
 						runBinaryEdge(domain)
-
-
 	except:
 		pass
 
+
 def runActive(domains,entries, threads, no_bruteforce):
-	if printOutput: print(B + "\n\n[+] Running active mode: ")
-	if not no_bruteforce: runPureBrute(domains) 
+	if printOutput: print(B + "\n[+] Running active mode: ")
+	if not no_bruteforce: runPureBrute(domains,threads) 
 	if len(entries)>0: 
 		runWordlistBrute(domains,entries, threads)
 	else:
@@ -631,16 +668,18 @@ def checkWildcard(domains):
 		if printOutput: print(B + "\n[!] Checking if " + W + domain + B +" has wildcard enable")
 		count = 0
 		#We generate 10 random and non existing subdomains and we test if they are marked as up. If all subdomains "exists", the domain has wildcard enable
-		for i in range(20):
+		for i in range(5):
 			try:
 				x = uuid.uuid4().hex[0:random.randint(6, 32)]
-				ip = socket.gethostbyname(x +"."+ domain)
+				#ip = socket.gethostbyname(x +"."+ domain)
+				answers = res.resolve(x +"."+ domain)
+				ip = answers[0].address
 				if ip not in ips:
 					ips.append(ip)
 				count = count + 1
 			except: pass
 
-		if (count == 20):
+		if (count == 5):
 			if printOutput: print(R + "\n[-] Alert: Wildcard enable for domain " + domain +". Omiting subdomains that resolve for " + str(ips))
 			wildcardsDicc[domain] = ips #Store the ip to discard subdomains with this ip
 		else:
@@ -720,9 +759,13 @@ def importApis():
 
 if __name__ == "__main__":
 
+
+	res.nameservers=[resolvers[0]]
+
+
 	args = parse_args()
 
-	version = "1.0"
+	version = "1.1"
 	#TO BE IMPLEMENTED AUTO UPDATE
 	
 

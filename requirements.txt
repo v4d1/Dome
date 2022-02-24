@@ -1,2 +1,3 @@
 futures
 argparse
+dnspython
