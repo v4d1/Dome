@@ -1,5 +1,8 @@
 # DOME - A subdomain enumeration tool
 
+[![Version](https://img.shields.io/badge/Release-1.0.0-blue.svg?maxAge=259200)]()   [![Build](https://img.shields.io/badge/Supported_OS-Linux-yellow.svg)]() [![Contributions Welcome](https://img.shields.io/badge/contributions-welcome-brightgreen.svg?style=flat)](https://github.com/v4d1/Dome/issues)
+
+
 Dome is a fast and reliable python script that makes active and/or passive scan to obtain subdomains and search for open ports. This tool is recommended for bug bounty hunters and pentester in their reconnaissance phase.
 
 
