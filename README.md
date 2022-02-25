@@ -57,6 +57,7 @@ python dome.py --help
 - Easy to use. Just install the requirements.txt and run
 - Active and Passive scan (read above)
 - Faster than other subdomain enumeration tools
+- CloudFare DNS resolver for fastests scans (Queued mode in TODO list)
 - Up to 16 different OSINT sources
 - Subdomains obtained via OSINT are tested to know if they are alive (only in passive mode)
 - Support for webs that requires API token
