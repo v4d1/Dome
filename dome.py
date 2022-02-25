@@ -59,20 +59,25 @@ def banner(version):
 def color(mode):
 	
 	global G, Y, B, R, W
-
-	if mode == True:
+	if mode != True:
 		is_windows = sys.platform.startswith('win')
+
+		G = '\033[92m'  # green
+		Y = '\033[93m'  # yellow
+		B = '\033[94m'  # blue
+		R = '\033[91m'  # red
+		W = '\033[0m'   # white
 
 		# Console Colors
 		if is_windows:
-			print("Not implemented yet")
-		else:
-			G = '\033[92m'  # green
-			Y = '\033[93m'  # yellow
-			B = '\033[94m'  # blue
-			R = '\033[91m'  # red
-			W = '\033[0m'   # white
-
+			try:
+				import win_unicode_console , colorama
+				win_unicode_console.enable()
+				colorama.init()
+			except:
+				if printOutput: 
+					print("To use colored version in Windows: 'pip install win_unicode_console colorama'")
+					print("You can use --no-color to use non colored output")
 	else: 
 		G = Y = B = R = W = ''
 
