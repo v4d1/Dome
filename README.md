@@ -130,7 +130,7 @@ Feel free to implement this features
 - [ ] Recursive scan
 - [ ] Autoupdate Script
 - [x] Add more OSINT engines with API token (create config file)
-- [ ] Add compatibility with windows 
+- [x] Add compatibility with windows 
 - [x] Add compatibility with Python 2.7
 - [x] Add Shodan for passive open ports? (Check requests limit with api key)
 - [ ] Add support for domains like .gov.uk (at this moment, the program only works with one level domain like domain.com) (https://publicsuffix.org/list/public_suffix_list.dat)
