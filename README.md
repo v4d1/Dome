@@ -32,7 +32,7 @@ The basic use of this mode is:
 python dome.py -m active -d domain
 ```
 
-Add -p option or a built-it port option (see usage menu) to perform port scanning
+Add `-p` option or a built-it port option (see usage menu) to perform port scanning
 
 ```sh
 python dome.py -m active -d domain -p 80,443,8080
@@ -40,7 +40,7 @@ python dome.py -m active -d domain -p 80,443,8080
 
 ## Installation
 
-You can run Dome with [Python](https://www.python.org/) 2 or 3
+You can run Dome with [Python](https://www.python.org/) 2 or 3. **Python3 is recommended**
 
 Install the dependencies and run the program
 
