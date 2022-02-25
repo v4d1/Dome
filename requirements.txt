@@ -1,3 +1,4 @@
 futures
 argparse
 dnspython
+requests
