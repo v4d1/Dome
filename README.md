@@ -1,6 +1,6 @@
 # DOME - A subdomain enumeration tool
 
-[![Version](https://img.shields.io/badge/Release-1.0.0-blue.svg?maxAge=259200)]()   [![Build](https://img.shields.io/badge/Supported_OS-Linux-yellow.svg)]() [![Contributions Welcome](https://img.shields.io/badge/contributions-welcome-brightgreen.svg?style=flat)](https://github.com/v4d1/Dome/issues)
+[![Version](https://img.shields.io/badge/Release-1.1-blue.svg?maxAge=259200)]()   [![Build](https://img.shields.io/badge/Supported_OS-Linux-yellow.svg)]() [![Contributions Welcome](https://img.shields.io/badge/contributions-welcome-brightgreen.svg?style=flat)](https://github.com/v4d1/Dome/issues)
 
 
 Dome is a fast and reliable python script that makes active and/or passive scan to obtain subdomains and search for open ports. This tool is recommended for bug bounty hunters and pentester in their reconnaissance phase.
@@ -23,7 +23,7 @@ python dome.py -m passive -d domain
 Perform bruteforce attacks to obtain alive subdomains. 
 There are 2 types of bruteforce:
 - **Pure Bruteforce**: Check subdomains from a.domain.com to zzz.domain.com (26 + 26^2 + 26^3 = 18278 subdomains) this bruteforce can be disabled with `-nb, --no-bruteforce`
-- **Worlist based**: Use a custom wordlist provided by the user using the flag `-w, --wordlist`
+- **Wordlist based**: Use a custom wordlist provided by the user using the flag `-w, --wordlist`. If no wordlists is specified, this mode won't be executed
 
 This mode will also make passive mode attack but in this case, the connection is tested to ensure the subdomain is still alive. To disable passive scan in active scan mode, use `--no-passive` flag
 
