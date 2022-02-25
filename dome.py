@@ -56,10 +56,10 @@ def banner(version):
 
 
 
-def color(mode):
+def color(no_color):
 	
 	global G, Y, B, R, W
-	if mode != True:
+	if no_color == False:
 		is_windows = sys.platform.startswith('win')
 
 		G = '\033[92m'  # green
