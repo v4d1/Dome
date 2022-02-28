@@ -584,7 +584,7 @@ def runBinaryEdge(domain):
 def runAlienVault(domain):
 	if printOutputV: print(B + "\n[!] Searching in" + W + " AlienVault:")
 
-	r = requests.get("https://otx.alienvault.com/api/v1/indicators/domain/" + domain + "/passive_dns", )
+	r = requests.get("https://otx.alienvault.com/api/v1/indicators/domain/" + domain + "/passive_dns")
 	d = json.loads(r.text)
 	for i in range(len(d["passive_dns"])):
 		if domain in d["passive_dns"][i]["hostname"]:
@@ -592,7 +592,19 @@ def runAlienVault(domain):
 
 
 
-			
+def runSiteDossier(domain):
+	if printOutputV: print(B + "\n[!] Searching in" + W + " Sitedossier:")
+	data=""
+	page=1
+	while "No data currently available." not in data:
+		r = requests.get("http://www.sitedossier.com/parentdomain/" + domain + "/" + str(page))
+		page=page + 100
+		data=r.text
+		pattern = '(?!2?F)[a-zA-Z0-9\-\.]*\.' + str(domain.split('.')[0]) + '\.' + str(domain.split('.')[1])
+		for domain in re.findall(pattern, r.text):
+			checkDomain(domain) #we send to check domain to verify it still exists
+
+
 
 
 #This function is used as template. Makes request method and grep
@@ -630,6 +642,9 @@ def runPassive(domains):
 			if printOutput: print(Y + "[!] No API Tokens detected. Running free OSINT engines...")
 
 		for domain in domains:
+			runSiteDossier(domain)
+			defaultRun("Sonar", "https://sonar.omnisint.io/subdomains/" + domain + "?page=", domain)
+			defaultRun("Hunt.io", "https://fullhunt.io/api/v1/domain/" + domain + "/details", domain)
 			defaultRun("Anubis-DB", "https://jonlu.ca/anubis/subdomains/" + domain, domain)
 			defaultRun("ThreatCrowd", "https://www.threatcrowd.org/searchApi/v2/domain/report/?domain=" + domain, domain)
 			defaultRun("HackerTarget", "https://api.hackertarget.com/hostsearch/?q=" + domain, domain)			
