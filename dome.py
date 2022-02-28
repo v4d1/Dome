@@ -298,7 +298,10 @@ def openPorts(ips, ports, timeout):
 		for domain in list(subdomains_found.keys()): #For every domain...
 			for i in range(len(subdomains_found[domain])): 
 				if ip == list(subdomains_found[domain][i].keys())[0]: #For every ip in domain...
-					if printOutput: print(G + ip + " " + str(subdomains_found[domain][i][ip]) + " " + Y + str(port_open)) #If we found the ip, we append the open ports
+					if len(port_open) > 0:
+						if printOutput: print(G + ip + " " + str(subdomains_found[domain][i][ip]) + " " + Y + str(port_open)) #If we found the ip, we append the open ports
+					else:
+						if printOutput: print(G + ip + " " + str(subdomains_found[domain][i][ip]) + " " + Y + "No open ports") #If we found the ip, we append the open ports
 					subdomains_found[domain][i][ip].append(port_open)
 
 
