@@ -62,7 +62,7 @@ python dome.py --help
 - Active and Passive scan (read above)
 - Faster than other subdomain enumeration tools
 - 7 different resolvers/nameservers including google, cloudfare (fastest), Quad9 and cisco DNS (use --resolvers filename.txt to use a custom list of resolvers, one per line)
-- Up to 16 different OSINT sources
+- Up to 17 different OSINT sources
 - Subdomains obtained via OSINT are tested to know if they are alive (only in active mode)
 - Support for webs that requires API token
 - Detects when api key is no longer working (Other tools just throw an error and stops working)
@@ -108,6 +108,7 @@ Without API:
 - crt.sh
 - bufferover.run
 - CertSpotter
+- Anubis-DB
 
 With API:
 
@@ -165,7 +166,7 @@ Feel free to implement this features
 | --top-web-ports | Scan the top web ports of the subdomain (Not compatible with -p option) |
 | -s, --silent | Silent mode. No output in terminal |
 | --no-color | Dont print colored output |
-| -t, --threads | Number of threads to use (Default: 20) | 10
+| -t, --threads | Number of threads to use (Default: 25) | 20
 | -o, --output | Save the results to txt, json and html files |
 | --max-response-size | Maximun length for HTTP response (Default:5000000 (5MB)) | 1000000
 | --r, --resolvers | Textfile with DNS resolvers to use. One per line | resolvers.txt

@@ -1,4 +1,10 @@
 #!/usr/bin/env python3
+
+
+# Created by Vadi (github.com/v4d1)
+# Contact me at vadi@securihub.com
+
+
 from __future__ import print_function #Python2 compatibility for prints
 import socket
 import sys
@@ -12,9 +18,8 @@ import uuid
 import random
 import json
 import time
+
 from dns import resolver
-
-
 from concurrent.futures import ThreadPoolExecutor
 from concurrent.futures import wait
 from datetime import datetime
@@ -36,14 +41,16 @@ res = resolver.Resolver()
 
 #resolvers = ['1.1.1.1'] #Cloudfare resolver, actually the fastest one 
 
-resolvers = ['1.1.1.1', '9.9.9.9', '8.8.8.8', '1.0.0.1', '208.67.222.222', '8.8.4.4', '149.112.112.11' ]
+resolvers = ['1.1.1.1', '9.9.9.9', '8.8.8.8', '1.0.0.1', '208.67.222.222', '8.8.4.4', '149.112.112.11']
 
 
 
 
-def changeDNS():
+def changeDNS(): #Not used right now
+
 	global resolvers
 	global res
+	
 	resolvers.append(resolvers.pop(0)) # first resolver is now the last
 	res.nameservers=[resolvers[0]]
 
@@ -55,7 +62,9 @@ def banner(version):
 
 
 def color(no_color):
+	#Thanks aboul3la
 	global G, Y, B, R, W
+	
 	if no_color == False:
 		is_windows = sys.platform.startswith('win')
 
@@ -89,7 +98,7 @@ def parser_error(errmsg):
 
 
 def parse_args():
-	# parse the arguments
+
 	parser = argparse.ArgumentParser(epilog='\tExample: \r\npython ' + sys.argv[0] + " -m active -d hackerone.com -w subdomains-5000.txt -p 80,443,8080 -o")
 	parser._optionals.title = "OPTIONS"
 	parser.error = parser_error
@@ -104,13 +113,14 @@ def parse_args():
 	parser.add_argument('--top-web-ports', help='Scan the top web ports of the subdomain.', action='store_true')
 	parser.add_argument('-s', '--silent', help='Silent mode. No output in terminal', action='store_false')
 	parser.add_argument('--no-color', help='Dont print colored output', action='store_true')
-	parser.add_argument('-t', '--threads', help='Number of threads to use', type=int, default=20)
+	parser.add_argument('-t', '--threads', help='Number of threads to use', type=int, default=25)
 	parser.add_argument('-o', '--output', help='Save the results to txt,json and html files', action='store_true')
 	parser.add_argument('--max-response-size', help='Maximun length for HTTP response', type=int, default=5000000)
 	parser.add_argument('--no-passive', help='Do not use OSINT techniques to obtain valid subdomains', action='store_false')
 	parser.add_argument('-r', '--resolvers', help='Textfile with DNS resolvers to use. One per line')
 	parser.add_argument('--version', help='Show dome version and exit', action='store_true')
 	parser.add_argument('-v', '--verbose', help='Show more information during execution', action='store_true')
+	
 	return parser.parse_args()
 
 
@@ -167,7 +177,6 @@ def checkDomain(domain):
 		return
 
 	#If the subdomain was tested before, it wont be scanned again. This is critical to reduce overload
-	#if domain not in subdomains_found_list and domain not in noExists:
 	if domain not in subdomains_found_list:
 		rootdomain=domain.split('.')[-2]+"."+domain.split('.')[-1] #DONT WORK WITH DOMAINS LIKE domain.gov.uk
 
@@ -532,7 +541,6 @@ def runCertSpotter(domain):
 def runShodan(domain):
 
 	if printOutputV: print(B + "\n[!] Searching in" + W + " Shodan:")
-	print('https://api.shodan.io/dns/domain/' + domain)
 	r =requests.get('https://api.shodan.io/dns/domain/' + domain + '?key=' + apis["SHODAN"])
 	d = json.loads(r.text)
 	for i in range(len(d["data"])):
@@ -622,6 +630,7 @@ def runPassive(domains):
 			if printOutput: print(Y + "[!] No API Tokens detected. Running free OSINT engines...")
 
 		for domain in domains:
+			defaultRun("Anubis-DB", "https://jonlu.ca/anubis/subdomains/" + domain, domain)
 			defaultRun("ThreatCrowd", "https://www.threatcrowd.org/searchApi/v2/domain/report/?domain=" + domain, domain)
 			defaultRun("HackerTarget", "https://api.hackertarget.com/hostsearch/?q=" + domain, domain)			
 			defaultRun("RapidDNS", "https://rapiddns.io/subdomain/" + domain + "?full=1&down=1", domain)
@@ -632,7 +641,7 @@ def runPassive(domains):
 			runAlienVault(domain)
 			global isWebArchive
 			isWebArchive == True
-			runWebArchive(domain)		
+			runWebArchive(domain)	#We use flag to tell function checkDomain to store the non existing subdomains due to high overload	
 			isWebArchive == False
 			runCertSpotter(domain) #CertSpotter can be used with api or without, so we make the condition inside the function
 			runCrt(domain)
