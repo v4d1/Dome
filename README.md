@@ -63,7 +63,7 @@ python dome.py --help
 - Faster than other subdomain enumeration tools
 - 7 different resolvers/nameservers including google, cloudfare (fastest), Quad9 and cisco DNS (use --resolvers filename.txt to use a custom list of resolvers, one per line)
 - Up to 16 different OSINT sources
-- Subdomains obtained via OSINT are tested to know if they are alive (only in passive mode)
+- Subdomains obtained via OSINT are tested to know if they are alive (only in active mode)
 - Support for webs that requires API token
 - Detects when api key is no longer working (Other tools just throw an error and stops working)
 - Wildcard detection and bypass
