@@ -3,6 +3,10 @@
 [![Version](https://img.shields.io/badge/Release-1.1-blue.svg?maxAge=259200)]()   [![Build](https://img.shields.io/badge/Supported_OS-Linux-yellow.svg)]() [![Contributions Welcome](https://img.shields.io/badge/contributions-welcome-brightgreen.svg?style=flat)](https://github.com/v4d1/Dome/issues)
 
 
+![Alt Text](https://media2.giphy.com/media/iT3UGmHpoJPFaSI8qN/giphy.gif)
+
+
+
 Dome is a fast and reliable python script that makes active and/or passive scan to obtain subdomains and search for open ports. This tool is recommended for bug bounty hunters and pentester in their reconnaissance phase.
 
 
@@ -57,7 +61,7 @@ python dome.py --help
 - Easy to use. Just install the requirements.txt and run
 - Active and Passive scan (read above)
 - Faster than other subdomain enumeration tools
-- CloudFare DNS resolver for fastests scans (Queued mode in TODO list)
+- 7 different resolvers/nameservers including google, cloudfare (fastest), Quad9 and cisco DNS (use --resolvers filename.txt to use a custom list of resolvers, one per line)
 - Up to 16 different OSINT sources
 - Subdomains obtained via OSINT are tested to know if they are alive (only in passive mode)
 - Support for webs that requires API token
@@ -65,9 +69,10 @@ python dome.py --help
 - Wildcard detection and bypass
 - Custom Port scaning and built-in params for Top100,Top1000 and Top Web ports
 - Colored and uncolored output for easy read
+- Windows and Python 2/3 support (Python 3 is recommended)
 - Highly customizable through arguments
 - Scan more than one domain simultaneously
-- Possibility to use threads for faster wordlists based scans
+- Possibility to use threads for faster bruteforce scans
 - Export output in different formats such as txt, json, html
 
 ## Buy me a Coffee
@@ -130,14 +135,13 @@ Feel free to implement this features
 - [ ] Recursive scan
 - [ ] Autoupdate Script
 - [x] Add more OSINT engines with API token (create config file)
-- [x] Add compatibility with windows 
+- [x] Add compatibility with Windows 
 - [x] Add compatibility with Python 2.7
 - [x] Add Shodan for passive open ports? (Check requests limit with api key)
 - [ ] Add support for domains like .gov.uk (at this moment, the program only works with one level domain like domain.com) (https://publicsuffix.org/list/public_suffix_list.dat)
 - [ ] Add precompiled files for Linux and Windows (Mac OS?)
 - [x] Add Spyse as osint engine
-- [x] Add CloudFare DNS
-- [ ] Use resolvers in queued mode (working but line is commented) 
+- [x] Added DNS resolvers
 - [ ] Implement spyse offset in request to get more subdomains (https://spyse-dev.readme.io/reference/domain_search)
 
 	
@@ -164,6 +168,7 @@ Feel free to implement this features
 | -t, --threads | Number of threads to use (Default: 20) | 10
 | -o, --output | Save the results to txt, json and html files |
 | --max-response-size | Maximun length for HTTP response (Default:5000000 (5MB)) | 1000000
+| --r, --resolvers | Textfile with DNS resolvers to use. One per line | resolvers.txt
 | -h, --help | Help command | 
 | --version | Show dome version and exit| 
 | -v, --verbose | Show more information during execution | 

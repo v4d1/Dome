@@ -34,11 +34,9 @@ countToChange = 0
 isWebArchive = False
 res = resolver.Resolver()
 
-resolvers = ['1.1.1.1'] #Cloudfare resolver, actually the fastest one 
+#resolvers = ['1.1.1.1'] #Cloudfare resolver, actually the fastest one 
 
-#If we use a list of resolvers, Dome will change to next resolver like a queue when 50 resolves takes longer than 5 seconds to response
-
-#resolvers = ['1.1.1.1', '9.9.9.9', '8.8.8.8', '1.0.0.1', '208.67.222.222', '8.8.4.4', '149.112.112.11' ]
+resolvers = ['1.1.1.1', '9.9.9.9', '8.8.8.8', '1.0.0.1', '208.67.222.222', '8.8.4.4', '149.112.112.11' ]
 
 
 
@@ -57,7 +55,6 @@ def banner(version):
 
 
 def color(no_color):
-	
 	global G, Y, B, R, W
 	if no_color == False:
 		is_windows = sys.platform.startswith('win')
@@ -106,11 +103,12 @@ def parse_args():
 	parser.add_argument('--top-1000-ports', help='Scan the top 1000 ports of the subdomain.', action='store_true')
 	parser.add_argument('--top-web-ports', help='Scan the top web ports of the subdomain.', action='store_true')
 	parser.add_argument('-s', '--silent', help='Silent mode. No output in terminal', action='store_false')
-	parser.add_argument('--no-color', help='Dont print colored output', action='store_false')
+	parser.add_argument('--no-color', help='Dont print colored output', action='store_true')
 	parser.add_argument('-t', '--threads', help='Number of threads to use', type=int, default=20)
 	parser.add_argument('-o', '--output', help='Save the results to txt,json and html files', action='store_true')
 	parser.add_argument('--max-response-size', help='Maximun length for HTTP response', type=int, default=5000000)
 	parser.add_argument('--no-passive', help='Do not use OSINT techniques to obtain valid subdomains', action='store_false')
+	parser.add_argument('-r', '--resolvers', help='Textfile with DNS resolvers to use. One per line')
 	parser.add_argument('--version', help='Show dome version and exit', action='store_true')
 	parser.add_argument('-v', '--verbose', help='Show more information during execution', action='store_true')
 	return parser.parse_args()
@@ -362,7 +360,7 @@ def runOpenPorts(threads,ports):
 	if len(ips_to_scan) == 0:
 		return
 
-	if printOutput: print(B + "[!] Checking open ports: ")
+	if printOutput: print(B + "[!] Checking open ports:                ")
 
 	executor = ThreadPoolExecutor(max_workers=threads)
 
@@ -765,8 +763,6 @@ def importApis():
 if __name__ == "__main__":
 
 
-	res.nameservers=[resolvers[0]]
-
 
 	args = parse_args()
 
@@ -807,13 +803,26 @@ if __name__ == "__main__":
 
 
 	wordlist_name = args.wordlist
+	if wordlist_name:
+		if not os.path.exists(wordlist_name):
+			print(R + "Wordlist file '" + wordlist_name + "' does not exists. Create it or run without -w,--wordlist to do not perform wordlist based attack.")
+			exit()
 	max_response = args.max_response_size
 	domains = args.domain.split(',')
 	threads = args.threads
 	mode = args.mode.lower()
 	show_ip=args.ip
 
-
+	args.resolvers
+	if args.resolvers:
+		if not os.path.exists(args.resolvers):
+			print(R + "Resolvers file '" + args.resolvers + "' does not exists. Create it or run without -r,--resolvers flags")
+			exit()
+		file = open(args.resolvers, 'r')
+		res.nameservers = file.read().splitlines()
+		file.close()
+	else:
+		res.nameservers=resolvers
 
 	if mode != "passive" and mode != "active":
 		if printOutput: print(R + "\n[-] Error mode. Mode argument only accepts 'active' or 'passive'")
@@ -841,6 +850,7 @@ if __name__ == "__main__":
 	elif args.ports:
 		if printOutput: print(B + "Check ports: " + W + str(ports))	
 	if printOutput: print(B + "Threads: " + W + str(threads))
+	if printOutput: print(B + "Resolvers: " + W + ', '.join(res.nameservers))
 	if printOutput: print(B + "Scan started: " + W + datetime.now().strftime("%d/%m/%Y %H:%M:%S"))
 
 	if printOutputV: print(Y + "\n[!] NOTE: Only new subdomains will be printed. No output from engine != no results.")
