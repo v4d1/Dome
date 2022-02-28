@@ -642,7 +642,7 @@ def runPassive(domains):
 			if printOutput: print(Y + "[!] No API Tokens detected. Running free OSINT engines...")
 
 		for domain in domains:
-			runSiteDossier(domain)
+			
 			defaultRun("Sonar", "https://sonar.omnisint.io/subdomains/" + domain + "?page=", domain)
 			defaultRun("Hunt.io", "https://fullhunt.io/api/v1/domain/" + domain + "/details", domain)
 			defaultRun("Anubis-DB", "https://jonlu.ca/anubis/subdomains/" + domain, domain)
@@ -653,6 +653,7 @@ def runPassive(domains):
 			defaultRun("UrlScan.io", "https://urlscan.io/api/v1/search/?q=" + domain, domain)
 			defaultRun("BufferOverflow", "https://dns.bufferover.run/dns?q=" + domain, domain)
 
+			runSiteDossier(domain)
 			runAlienVault(domain)
 			global isWebArchive
 			isWebArchive == True
