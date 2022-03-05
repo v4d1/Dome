@@ -423,6 +423,7 @@ def runWebArchive(domain):
 	if printOutputV: print(B + "\n[!] Searching in" + W + " Web Archive: " + B + "this web page can take longer to load.")
 
 	if printOutputV: print(G + "[+] Downloading data")
+	
 	try:
 		r = requests.get("https://web.archive.org/cdx/search/cdx?url=*." + domain + "&output=txt&fl=original&collapse=urlkey&page=", timeout=10)
 	except:
@@ -437,6 +438,7 @@ def runWebArchive(domain):
 		pattern = '(?!2?F)[a-zA-Z0-9\-\.]*\.' + str(domain.split('.')[0]) + '\.' + str(domain.split('.')[1])
 		if len_res > 5000000:
 			if printOutputV: print(G + "[+] Greping file. This can take a while\n")
+
 		for domain in re.findall(pattern, r.text):
 			checkDomain(domain) #we send to check domain to verify it still exists
 
@@ -597,6 +599,9 @@ def runSiteDossier(domain):
 	page=1
 	while "No data currently available." not in data:
 		r = requests.get("http://www.sitedossier.com/parentdomain/" + domain + "/" + str(page))
+		if "your IP has been blacklisted" in r.text:
+			if printOutputV: print(R + "[-] Your IP has been blacklisted")
+			return
 		page=page + 100
 		data=r.text
 		pattern = '(?!2?F)[a-zA-Z0-9\-\.]*\.' + str(domain.split('.')[0]) + '\.' + str(domain.split('.')[1])
