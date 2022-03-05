@@ -656,6 +656,8 @@ def runPassive(domains):
 			defaultRun("ThreatMiner", "https://api.threatminer.org/v2/domain.php?q=" + domain + "&rt=5", domain)
 			defaultRun("UrlScan.io", "https://urlscan.io/api/v1/search/?q=" + domain, domain)
 			defaultRun("BufferOverflow", "https://dns.bufferover.run/dns?q=" + domain, domain)
+			defaultRun("DNS Repo", "https://dnsrepo.noc.org/?search=." + domain, domain)
+
 
 			runSiteDossier(domain)
 			runAlienVault(domain)
