@@ -1,6 +1,6 @@
 # DOME - A subdomain enumeration tool
 
-[![Version](https://img.shields.io/badge/Release-1.1-blue.svg?maxAge=259200)]()   [![Build](https://img.shields.io/badge/Supported_OS-Linux-yellow.svg)]() [![Contributions Welcome](https://img.shields.io/badge/contributions-welcome-brightgreen.svg?style=flat)](https://github.com/v4d1/Dome/issues)
+[![Version](https://img.shields.io/badge/Release-1.1-blue.svg?maxAge=259200)]()   [![Build](https://img.shields.io/badge/Supported_OS-Windows-yellow.svg)]() [![Build](https://img.shields.io/badge/Supported_OS-Linux-yellow.svg)]() [![Contributions Welcome](https://img.shields.io/badge/contributions-welcome-brightgreen.svg?style=flat)](https://github.com/v4d1/Dome/issues)
 
 
 ![Alt Text](https://i.imgur.com/LU2br8y.png)
