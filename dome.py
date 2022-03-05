@@ -197,7 +197,7 @@ def checkDomain(domain):
 
 				#ip_result = socket.gethostbyname(domain)
 				res.timeout = 1
-				res.timelife = 1
+				res.lifetime = 1
 				answers = res.resolve(domain)
 
 				ip_result = answers[0].address
@@ -246,15 +246,11 @@ def checkDomain(domain):
 				count2 = 0
 				for i in range(len(subdomains_found[rootdomain])): #if ip is in diccionary
 					count2=count2+1
-					#print("IS " + singleip + " in " + str(list(subdomains_found[rootdomain][i].keys())))
 					if singleip in list(subdomains_found[rootdomain][i].keys()): #First time = assing, next times = append
-					#	print("YES")
-					#	print("IS " + domain + " NOT in " + str(subdomains_found[rootdomain][i][singleip]))
 						if domain not in subdomains_found[rootdomain][i][singleip]:
 							subdomains_found[rootdomain][i][singleip].append(domain)
 							found=True
 							break
-							#subdomains_found_list.append(domain)
 						
 
 				if count2 == len(subdomains_found[rootdomain]) and found==False: #if ip doesnt exists...
@@ -262,8 +258,6 @@ def checkDomain(domain):
 
 
 		subdomains_found_list.append(domain)
-		#print(subdomains_found)
-
 
 		return True
 
@@ -281,7 +275,7 @@ def brute(domains, entries, option):
 			checkDomain(subdomain)
 			if option == 1:
 				if False: 
-					print('\x1b[1K\r                         ', end='\r') #clear screen 
+					print('\x1b[1K\r                              ', end='\r') #clear screen 
 					print('\x1b[1K\r' + subdomain + "        ", end='\r')
 			else:
 				if printOutput: print('\x1b[1K\r' + subdomain + "        ", end='\r')
@@ -429,7 +423,12 @@ def runWebArchive(domain):
 	if printOutputV: print(B + "\n[!] Searching in" + W + " Web Archive: " + B + "this web page can take longer to load.")
 
 	if printOutputV: print(G + "[+] Downloading data")
-	r = requests.get("https://web.archive.org/cdx/search/cdx?url=*." + domain + "&output=txt&fl=original&collapse=urlkey&page=", timeout=10)
+	try:
+		r = requests.get("https://web.archive.org/cdx/search/cdx?url=*." + domain + "&output=txt&fl=original&collapse=urlkey&page=", timeout=10)
+	except:
+		if printOutputV: print("Timeout exceeded. Exiting")
+		return
+
 	if printOutputV: print(G + "[+] Downloaded data for " + W + domain + " (" + str(len(r.text)/1000000) + "MB)")
 	len_res = len(r.text)
 	if  len_res > max_response:
@@ -642,7 +641,7 @@ def runPassive(domains):
 			if printOutput: print(Y + "[!] No API Tokens detected. Running free OSINT engines...")
 
 		for domain in domains:
-			
+
 			defaultRun("Sonar", "https://sonar.omnisint.io/subdomains/" + domain + "?page=", domain)
 			defaultRun("Hunt.io", "https://fullhunt.io/api/v1/domain/" + domain + "/details", domain)
 			defaultRun("Anubis-DB", "https://jonlu.ca/anubis/subdomains/" + domain, domain)
