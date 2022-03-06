@@ -381,7 +381,7 @@ def runOpenPorts(threads,ports):
 		
 		splited_list = [ips_to_scan[i:i+x] for i in range(0, len(ips_to_scan), x)]
 		
-		futures = [executor.submit(openPorts, splited_list[i], ports, timeout) for i in range(threads)]
+		futures = [executor.submit(openPorts, splited_list[i], ports, timeout) for i in range(len(splited_list))]
 
 	wait(futures)
 
