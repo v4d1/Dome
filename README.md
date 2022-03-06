@@ -5,6 +5,7 @@
 
 ![Alt Text](https://i.imgur.com/LU2br8y.png)
 
+**[Check the Spanish Version](https://securihub.com/dome-nuestra-herramienta-para-enumerar-subdominios/)**
 
 
 Dome is a fast and reliable python script that makes active and/or passive scan to obtain subdomains and search for open ports. This tool is recommended for bug bounty hunters and pentester in their reconnaissance phase.
