@@ -184,7 +184,7 @@ Feel free to implement this features
 
 Perform active and passive scan, show the ip adress of each subdomain and make a port scan using top-web-ports. Data will also be written in /results folder:
 ```sh
-python dome.py -m active -d domain -i --top-web-ports -o
+python dome.py -m active -d domain -w wordlist.txt -i --top-web-ports -o
 ```
 
 Perform passive scan in silent mode and write output to files.
@@ -195,17 +195,17 @@ python dome.py -m passive -d domain --silent --output
 
 Perform active scan without passive and port scan
 ```sh
-python dome.py -m active -d domain --no-passive
+python dome.py -m active -d domain -w wordlist.txt --no-passive
 ```
 
 Only bruteforce with wordlist
 ```sh
-python dome.py -m active -d domain --no-bruteforce
+python dome.py -m active -d domain -w wordlist.txt --no-bruteforce
 ```
 
 Scan active and passive and perform port scan ONLY in ports 22,80,3306
 ```sh
-python dome.py -m active -d domain -p 22,80,3306
+python dome.py -m active -d domain -w wordlist.txt -p 22,80,3306
 ```
 
 
