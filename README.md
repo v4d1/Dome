@@ -33,13 +33,13 @@ This mode will also make passive mode attack but in this case, the connection is
 
 The basic use of this mode is:
 ```sh
-python dome.py -m active -d domain
+python dome.py -m active -d domain -w wordlist.txt
 ```
 
 Add `-p` option or a built-it port option (see usage menu) to perform port scanning
 
 ```sh
-python dome.py -m active -d domain -p 80,443,8080
+python dome.py -m active -d domain -w wordlist.txt -p 80,443,8080
 ```
 
 ## Installation
