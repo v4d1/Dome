@@ -149,6 +149,7 @@ Feel free to implement this features
 - [x] Add Spyse as osint engine
 - [x] Added DNS resolvers
 - [ ] Implement spyse offset in request to get more subdomains (https://spyse-dev.readme.io/reference/domain_search)
+- [ ] Add common prefix to valid subdomains like -testing, -staging, etc
 
 	
 
