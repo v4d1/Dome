@@ -5,6 +5,7 @@
 
 ![Alt Text](https://i.imgur.com/LU2br8y.png)
 
+**[Check the Spanish Version](https://securihub.com/dome-nuestra-herramienta-para-enumerar-subdominios/)**
 
 
 Dome is a fast and reliable python script that makes active and/or passive scan to obtain subdomains and search for open ports. This tool is recommended for bug bounty hunters and pentester in their reconnaissance phase.
@@ -33,13 +34,13 @@ This mode will also make passive mode attack but in this case, the connection is
 
 The basic use of this mode is:
 ```sh
-python dome.py -m active -d domain
+python dome.py -m active -d domain -w wordlist.txt
 ```
 
 Add `-p` option or a built-it port option (see usage menu) to perform port scanning
 
 ```sh
-python dome.py -m active -d domain -p 80,443,8080
+python dome.py -m active -d domain -w wordlist.txt -p 80,443,8080
 ```
 
 ## Installation
@@ -148,6 +149,7 @@ Feel free to implement this features
 - [x] Add Spyse as osint engine
 - [x] Added DNS resolvers
 - [ ] Implement spyse offset in request to get more subdomains (https://spyse-dev.readme.io/reference/domain_search)
+- [ ] Add common prefix to valid subdomains like -testing, -staging, etc
 
 	
 
@@ -184,7 +186,7 @@ Feel free to implement this features
 
 Perform active and passive scan, show the ip adress of each subdomain and make a port scan using top-web-ports. Data will also be written in /results folder:
 ```sh
-python dome.py -m active -d domain -i --top-web-ports -o
+python dome.py -m active -d domain -w wordlist.txt -i --top-web-ports -o
 ```
 
 Perform passive scan in silent mode and write output to files.
@@ -195,17 +197,17 @@ python dome.py -m passive -d domain --silent --output
 
 Perform active scan without passive and port scan
 ```sh
-python dome.py -m active -d domain --no-passive
+python dome.py -m active -d domain -w wordlist.txt --no-passive
 ```
 
 Only bruteforce with wordlist
 ```sh
-python dome.py -m active -d domain --no-bruteforce
+python dome.py -m active -d domain -w wordlist.txt --no-bruteforce
 ```
 
 Scan active and passive and perform port scan ONLY in ports 22,80,3306
 ```sh
-python dome.py -m active -d domain -p 22,80,3306
+python dome.py -m active -d domain -w wordlist.txt -p 22,80,3306
 ```
 
 
