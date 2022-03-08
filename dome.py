@@ -352,6 +352,16 @@ def runWordlistBrute(domains,entries, threads):
 	wait(futures)
 
 
+def checkCommonPrefix():
+
+	commonPrefix = ['-staging', '-testing', '-pre', '-sts', '-test', '-stage']
+	for subdomain in subdomains_found_list:
+		for c in commonPrefix:
+			idx = subdomain.index(".")
+			new = subdomain[:idx] + c + subdomain[idx:]
+			checkDomain(new)
+
+
 def runOpenPorts(threads,ports):
 
 	timeout = 0.25 #increase if the hosts take longer to respond
@@ -381,7 +391,7 @@ def runOpenPorts(threads,ports):
 		
 		splited_list = [ips_to_scan[i:i+x] for i in range(0, len(ips_to_scan), x)]
 		
-		futures = [executor.submit(openPorts, splited_list[i], ports, timeout) for i in range(threads)]
+		futures = [executor.submit(openPorts, splited_list[i], ports, timeout) for i in range(len(splited_list))]
 
 	wait(futures)
 
@@ -695,6 +705,7 @@ def runActive(domains,entries, threads, no_bruteforce):
 	else:
 		if printOutput: print(R + "\n\n[-] No wordlist provided. ")
 
+	checkCommonPrefix()
 
 
 def checkWildcard(domains):
