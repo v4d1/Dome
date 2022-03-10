@@ -150,6 +150,8 @@ Feel free to implement this features
 - [x] Added DNS resolvers
 - [ ] Implement spyse offset in request to get more subdomains (https://spyse-dev.readme.io/reference/domain_search)
 - [x] Add common prefix to valid subdomains like -testing, -staging, etc
+- [ ] Delete wordlists words <= 3 letters if pure bruteforce was made (avoid duplicate connections)
+- [ ] Add exclusion file so bug bounty hunters can specify OOS subdomains in order to not print/output them
 
 	
 
