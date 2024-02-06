@@ -116,6 +116,7 @@ def parse_args():
 	parser.add_argument('-t', '--threads', help='Number of threads to use', type=int, default=25)
 	parser.add_argument('-o', '--output', help='Save the results to txt,json and html files', action='store_true')
 	parser.add_argument('--max-response-size', help='Maximun length for HTTP response', type=int, default=5000000)
+	parser.add_argument('--maxdepth', help='Only possible value is 4, otherwise, dome will use 3 as maxdepth', type=int, default=3)
 	parser.add_argument('--no-passive', help='Do not use OSINT techniques to obtain valid subdomains', action='store_false')
 	parser.add_argument('-r', '--resolvers', help='Textfile with DNS resolvers to use. One per line')
 	parser.add_argument('--version', help='Show dome version and exit', action='store_true')
@@ -311,11 +312,16 @@ def openPorts(ips, ports, timeout):
 
 
 
-def runPureBrute(domains, threads):
+def runPureBrute(domains, threads, maxdepth):
 
 	charset = ['a','b','c','d','e','f','g','h','i','j','k','l','m','n','o','p','q','r','s','t','u','v','w','x','y','z']
 
 	entries = []
+	if maxdepth ==4:
+		if printOutputV: print(B + "[!] Bruteforcing from " + W + "a" + B + " to" + W + " zzzz: ")
+	else:
+		if printOutputV: print(B + "[!] Bruteforcing from " + W + "a" + B + " to" + W + " zzz: ")
+
 
 	for letter1 in charset:
 		entries.append(letter1)
@@ -323,9 +329,12 @@ def runPureBrute(domains, threads):
 			entries.append(letter1+letter2)
 			for letter3 in charset:
 				entries.append(letter1+letter2+letter3)
+				if maxdepth == 4:
+					for letter4 in charset:
+						entries.append(letter1+letter2+letter3+letter4)
 
+	if printOutputV: print(B + "[!] Testing " + W + str(len(entries)) + B + " combinations")
 
-	if printOutputV: print(B + "[!] Bruteforcing from " + W + "a" + B + " to" + W + " zzz: ")
 
 	#We split the wordlist in N parts (N = number of threads)
 	x = int(len(entries)/threads) + 1
@@ -335,6 +344,7 @@ def runPureBrute(domains, threads):
 	executor = ThreadPoolExecutor(max_workers=threads)
 	futures = [executor.submit(brute, domains, splited_list[i],1) for i in range(len(splited_list))]
 	wait(futures)
+
 
 
 def runWordlistBrute(domains,entries, threads):
@@ -697,15 +707,15 @@ def runPassive(domains):
 		pass
 
 
-def runActive(domains,entries, threads, no_bruteforce):
+def runActive(domains,entries, threads, no_bruteforce, maxdepth):
 	if printOutput: print(B + "\n[+] Running active mode: ")
-	if not no_bruteforce: runPureBrute(domains,threads) 
+	if not no_bruteforce: runPureBrute(domains,threads, maxdepth) 
 	if len(entries)>0: 
 		runWordlistBrute(domains,entries, threads)
 	else:
 		if printOutput: print(R + "\n\n[-] No wordlist provided. ")
 
-	checkCommonPrefix()
+	#checkCommonPrefix()
 
 
 def checkWildcard(domains):
@@ -933,7 +943,7 @@ if __name__ == "__main__":
 		checkWildcard(domains)
 
 
-		runActive(domains, entries, threads, args.no_bruteforce)
+		runActive(domains, entries, threads, args.no_bruteforce, args.maxdepth)
 		
 
 		#We run passive except if user expecify not to do it with --no-passive
