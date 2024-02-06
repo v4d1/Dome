@@ -26,12 +26,11 @@ CERTSPOTTER=""
 
 
 
-
 ##############################################################################
-# SPYSE - https://spyse.com/user
+# FullHunt - https://fullhunt.io/user/settings/
 ############################################################################## 
 
-SPYSE=""
+FULLHUNT="" 
 
 
 
@@ -46,7 +45,7 @@ SECURITYTRAILS=""
 #PASSIVETOTAL - https://community.riskiq.com/settings						   
 ############################################################################## 
 
-PASSIVETOTAL_USERNAME=""
+PASSIVETOTAL_USERNAME="alvaro.vadillo.av@gmail.com"
 PASSIVETOTAL=""
 
 

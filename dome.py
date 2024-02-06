@@ -504,36 +504,6 @@ def runPassiveTotal(domain):
 
 
 
-
-def runSpyse(domain):
-	if printOutputV: print(B + "\n[!] Searching in" + W + " Spyse:")
-
-	header = {"Authorization":"Bearer " + apis["SPYSE"], "Accept": "application/json"}
-
-
-	r = requests.get("https://api.spyse.com/v4/data/account/quota", headers=header)
-	d = json.loads(r.text)
-	req_remaining = d["data"]["items"][0]["api_requests_remaining"]
-	limit = d["data"]["items"][0]["api_requests_limit"]
-
-	if printOutputV: print(G + "[!] " + W + str(req_remaining) + G + " requests available of " + str(limit) + " (per month)")
-	if(req_remaining==0):
-		if printOutputV: print(R + "[-] No API requests left this month")
-		return
-
-
-	r = requests.post("https://api.spyse.com/v4/data/domain/search", headers=header, data="{\"search_params\":[{\"name\":{\"operator\":\"ends\",\"value\":\"." + domain + "\"}}],\"limit\":100}")
-	#d = json.loads(r.text)
-	if len(r.text) > max_response:
-		if printOutputV: print(W + "[-] HTTP response to high to grep. Length is " + R + str(len(r.text)) + W + " and max_response is " + R + str(max_response) + W + ". Add --max-response-size [NUMBER] to increase maximum response size.")
-	else:
-		pattern = '(?!2?F)[a-zA-Z0-9\-\.]*\.' + str(domain.split('.')[0]) + '\.' + str(domain.split('.')[1])
-		for domain in re.findall(pattern, r.text):
-			checkDomain(domain) #we send to check domain to verify it still exists
-
-
-
-
 def runCertSpotter(domain):
 	if printOutputV: print(B + "\n[!] Searching in" + W + " CertSpotter:\n" + G + "[!] Free 100/queries per hour")
 
@@ -557,6 +527,27 @@ def runCertSpotter(domain):
 		for domain in re.findall(pattern, r.text):
 			checkDomain(domain) #we send to check domain to verify it still exists
 
+def runFullHunt(domain):
+	if printOutputV: print(B + "\n[!] Searching in" + W + " FullHunt:\n" + G)
+
+	header={}
+	if apis:
+		for apiengines in apis.keys():
+			if apiengines == "FULLHUNT":
+				if printOutputV: print(G + "[+] FullHunt API Key found\n")
+				header = {
+					'User-Agent': 'Mozilla/5.0',
+					'X-API-KEY': apis["FULLHUNT"]  # This is another valid field
+				}
+
+	r = requests.get("https://fullhunt.io/api/v1/domain/bbva.com/subdomains", headers=header)
+	d = json.loads(r.text)
+
+	if len(r.text) > max_response:
+		if printOutputV: print(W + "[-] HTTP response to high to grep. Length is " + R + str(len(r.text)) + W + " and max_response is " + R + str(max_response) + W + ". Add --max-response-size [NUMBER] to increase maximum response size.")
+	else:
+		for domain in d["hosts"]:
+			checkDomain(domain) #we send to check domain to verify it still exists
 
 
 def runShodan(domain):
@@ -636,7 +627,8 @@ def defaultRun(name, request, domain):
 
 
 	if printOutputV: print(B + "\n[!] Searching in" + W + " " + name +":")
-	r = requests.get(request)
+	header = {'User-Agent': 'Mozilla/5.0'}
+	r = requests.get(request, headers=header)
 	if name =="VirusTotal":
 		if r.status_code == 429:
 			if printOutputV: print(R + "\n[-] API Limit exceeded. The Public API is limited to 500 requests per day and a rate of 4 requests per minute." + B)
@@ -667,27 +659,26 @@ def runPassive(domains):
 
 		for domain in domains:
 
-			defaultRun("Sonar", "https://sonar.omnisint.io/subdomains/" + domain + "?page=", domain)
-			defaultRun("Hunt.io", "https://fullhunt.io/api/v1/domain/" + domain + "/details", domain)
+			global isWebArchive
+			isWebArchive == True
+			runWebArchive(domain)	#We use flag to tell function checkDomain to store the non existing subdomains due to high overload	
+			isWebArchive == False
+
 			defaultRun("Anubis-DB", "https://jonlu.ca/anubis/subdomains/" + domain, domain)
-			defaultRun("ThreatCrowd", "https://www.threatcrowd.org/searchApi/v2/domain/report/?domain=" + domain, domain)
+			# UNAVAILABLE defaultRun("ThreatCrowd", "https://www.threatcrowd.org/searchApi/v2/domain/report/?domain=" + domain, domain)
 			defaultRun("HackerTarget", "https://api.hackertarget.com/hostsearch/?q=" + domain, domain)			
 			defaultRun("RapidDNS", "https://rapiddns.io/subdomain/" + domain + "?full=1&down=1", domain)
-			defaultRun("ThreatMiner", "https://api.threatminer.org/v2/domain.php?q=" + domain + "&rt=5", domain)
+			# TOO FAST LIMITED defaultRun("ThreatMiner", "https://api.threatminer.org/v2/domain.php?q=" + domain + "&rt=5", domain)
 			defaultRun("UrlScan.io", "https://urlscan.io/api/v1/search/?q=" + domain, domain)
-			defaultRun("BufferOverflow", "https://dns.bufferover.run/dns?q=" + domain, domain)
 			defaultRun("DNS Repo", "https://dnsrepo.noc.org/?search=." + domain, domain)
 
 
 			runSiteDossier(domain)
 			runAlienVault(domain)
-			global isWebArchive
-			isWebArchive == True
-			runWebArchive(domain)	#We use flag to tell function checkDomain to store the non existing subdomains due to high overload	
-			isWebArchive == False
+
 			runCertSpotter(domain) #CertSpotter can be used with api or without, so we make the condition inside the function
 			runCrt(domain)
-
+			
 			if apis:
 
 				for api in apis.keys():
@@ -695,14 +686,15 @@ def runPassive(domains):
 						defaultRun("VirusTotal", "https://www.virustotal.com/vtapi/v2/domain/report?apikey=" + apis["VIRUSTOTAL"] + "&domain=" + domain ,domain)
 					elif api == "SHODAN":
 						runShodan(domain)
-					elif api == "SPYSE":
-						runSpyse(domain)
 					elif api == "SECURITYTRAILS":
 						runSecurityTrails(domain)
 					elif api == "PASSIVETOTAL":
 						runPassiveTotal(domain)
 					elif api =="BINARYEDGE":
 						runBinaryEdge(domain)
+					elif api == "FULLHUNT":
+						runFullHunt(domain)
+
 	except:
 		pass
 
