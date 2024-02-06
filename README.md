@@ -103,15 +103,10 @@ Without API:
 - HackerTarget
 - RapidDNS
 - ThreatMiner
-- urlscan.io
-- threatcrowd.org
 - web.archive.org
 - crt.sh
-- bufferover.run
 - CertSpotter
 - Anubis-DB
-- Hunt.io
-- Sonar
 - SiteDossier
 - DNSrepo
 
@@ -119,7 +114,7 @@ With API:
 
 - VirusTotal
 - Shodan
-- Spyse
+- FullHunt
 - SecurityTrails
 - PassiveTotal
 - BinaryEdge
@@ -144,7 +139,7 @@ Feel free to implement this features
 - [x] Add compatibility with Windows 
 - [x] Add compatibility with Python 2.7
 - [x] Add Shodan for passive open ports? (Check requests limit with api key)
-- [ ] Add support for domains like .gov.uk (at this moment, the program only works with one level domain like domain.com) (https://publicsuffix.org/list/public_suffix_list.dat)
+- [x] Add support for domains like .gov.uk (at this moment, the program only works with one level domain like domain.com) (https://publicsuffix.org/list/public_suffix_list.dat)
 - [ ] Add precompiled files for Linux and Windows (Mac OS?)
 - [x] Add Spyse as osint engine
 - [x] Added DNS resolvers
