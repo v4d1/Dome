@@ -141,10 +141,8 @@ Feel free to implement this features
 - [x] Add Shodan for passive open ports? (Check requests limit with api key)
 - [x] Add support for domains like .gov.uk (at this moment, the program only works with one level domain like domain.com) (https://publicsuffix.org/list/public_suffix_list.dat)
 - [ ] Add precompiled files for Linux and Windows (Mac OS?)
-- [x] Add Spyse as osint engine
 - [x] Added DNS resolvers
-- [ ] Implement spyse offset in request to get more subdomains (https://spyse-dev.readme.io/reference/domain_search)
-- [ ] Add common prefix to valid subdomains like -testing, -staging, etc
+- [] Add common prefix to valid subdomains like -testing, -staging, etc
 
 	
 
